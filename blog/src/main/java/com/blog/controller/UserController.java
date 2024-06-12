@@ -1,0 +1,76 @@
+package com.blog.controller;
+
+import com.blog.dto.UserForm;
+import com.blog.model.User;
+import com.blog.repository.UserRepository;
+import com.blog.service.UserService;
+import jakarta.servlet.http.HttpSession;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+
+@Controller
+public class UserController {
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private HttpSession session;
+    @Autowired
+    private UserService userService;
+
+
+    @GetMapping("/home")
+    public String home(){
+        return "users/join";
+    }
+
+    @PostMapping("/home/join")
+    public String join(User user){
+        User saved = userRepository.save(user);
+
+        return "redirect:/home/user/" + saved.getId();
+    }
+
+    @GetMapping("/home/user/{id}")
+    public String detail(@PathVariable Integer id, Model model){
+        User userEntity = userRepository.findById(id).orElseThrow(()->{
+            return new IllegalArgumentException("해당유저는 없습니다. id: " + id);
+        });
+        model.addAttribute("user", userEntity);
+        return "users/ushow";
+    }
+
+    @GetMapping("/auth/joinForm")
+    public String joinForm(){
+        return "user/joinForm";
+    }
+
+    @GetMapping("/auth/loginForm")
+    public String loginForm(){
+        return "user/loginForm";
+    }
+
+//    @GetMapping("/user/logout")
+//    public String logOut(HttpSession session){
+//        session.invalidate();
+//        return "user/loginForm";
+//    }
+
+    @GetMapping("/user/form")
+    public String updateForm(Model model){
+        // model.addAttribute("principal", session.getAttribute("principal"));
+        return "user/updateForm";
+    }
+
+    // 회원탈퇴
+    @GetMapping("/user/deleteForm")
+    public String deleteForm(Model model){
+
+        model.addAttribute("principal",session.getAttribute("principal"));
+
+        return "user/deleteForm";
+    }
+}
