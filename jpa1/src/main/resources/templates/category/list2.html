@@ -1,0 +1,81 @@
+<!doctype html>
+
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+    <meta charset="utf-8">
+
+    <link rel="stylesheet" type="text/css" th:href="@{/common.css}" />
+
+    <style>
+
+        h3 { margin-bottom: 2px; }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>카테고리 별 책목록</h1>
+
+    <div th:each="cg : ${ categories }">
+
+        <h3 th:text="${ cg.name }"></h3>
+
+        <table class="list">
+
+            <thead>
+
+            <tr>
+
+                <th>아이디</th>
+
+                <th>제목</th>
+
+                <th>작가</th>
+
+                <th>카테고리</th>
+
+                <th>가격</th>
+
+                <th>출판사</th>
+
+
+            </tr>
+
+            </thead>
+
+            <tbody>
+
+            <tr th:each="b : ${ cg.books }">
+
+                <td th:text="${ b.id }"></td>
+
+                <td th:text="${ b.title }"></td>
+
+                <td th:text="${ b.author }"></td>
+
+                <td th:text="${ b.category.name }"></td>
+
+                <td th:text="${ b.price }"></td>
+
+                <td th:text="${ b.publisher }"></td>
+
+
+            </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+</body>
+
+</html>

@@ -22,7 +22,8 @@ pageEncoding="UTF-8"%>
                  <input class="form-check-input" type="checkbox" id="memory" >Remember me
          </label>
        </div>
-  <button id="btn-login" class="btn btn-primary">로그인</button>
+  <button id="btn-login" class="btn btn-primary"  onclick="location.href='http://localhost:8087/board/form'">
+  로그인</button>
 
   </form>
 <button><a href="/auth/joinForm">회원가입</a></button>

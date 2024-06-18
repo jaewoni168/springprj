@@ -1,9 +1,11 @@
 package com.shop2.service;
 
+import com.shop2.DataNotFoundException;
 import com.shop2.dto.MemberUpdateDto;
 import com.shop2.entity.Member;
 import com.shop2.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -14,6 +16,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.util.Optional;
+
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -80,6 +85,12 @@ public class MemberService implements UserDetailsService {
 
   memberRepository.save(member);
 
+  return member;
+ }
+
+
+ public Member getUser(String name) {
+  Member member = this.memberRepository.findByEmail(name);
   return member;
  }
 

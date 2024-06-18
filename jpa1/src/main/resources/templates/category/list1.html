@@ -1,0 +1,54 @@
+<!doctype html>
+
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+    <meta charset="utf-8">
+
+    <link rel="stylesheet" type="text/css" th:href="@{/common.css}" />
+
+    <style>
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>카테고리 목록</h1>
+
+    <table class="list">
+
+        <thead>
+
+        <tr>
+
+            <th>id</th>      <th>이름</th>
+
+        </tr>
+
+        </thead>
+
+        <tbody>
+
+        <tr th:each="cg : ${ categories }">
+
+            <td th:text="${ cg.id }"></td>
+
+            <td th:text="${ cg.name }"></td>
+
+
+        </tr>
+
+        </tbody>
+
+    </table>
+
+</div>
+
+</body>
+
+</html>

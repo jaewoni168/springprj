@@ -5,11 +5,11 @@ import com.shop2.dto.MemberFormDto;
 import com.shop2.dto.MemberUpdateDto;
 import com.shop2.entity.Member;
 import com.shop2.repository.MemberRepository;
-import com.shop2.service.MailService;
-import com.shop2.service.MemberService;
+import com.shop2.service.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,7 +29,10 @@ public class MemberController {
  @Autowired
  private MailService mailService;
 
+ private final QuestionService questionService;
+ private final AnswerService answerService;
  private final MemberService memberService;
+ private final CommentService commentService;
  private final PasswordEncoder passwordEncoder;
 
 
@@ -172,6 +175,25 @@ public class MemberController {
   model.addAttribute("member", member);
 
   return "redirect:/members/loginInfo";
+ }
+
+ @PreAuthorize("isAuthenticated()")
+ @GetMapping(value= "/profile")
+ public String profile(Model model, Principal principal) {
+  String email = principal.getName();
+
+  model.addAttribute("name", email);
+
+  model.addAttribute("questionList",
+          questionService.getCurrentListByUser(email, 5));
+
+  model.addAttribute("answerList",
+          answerService.getCurrentListByUser(email, 5));
+
+  model.addAttribute("commentList",
+          commentService.getCurrentListByUser(email, 5));
+
+  return "board/profile";
  }
 
 }  //end

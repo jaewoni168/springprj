@@ -19,6 +19,9 @@ a{outline:0 !important; }
         <span style="font-size:14px;font-weight:normal">
           [ 댓글 : <c:out value="${fn:length(board.replies)}" /> 개]
           </span>
+
+
+
          </h4>
          <p class="card-text">글 내용: ${board.content}</p>
          <a href="/board/${board.id}"
@@ -35,10 +38,10 @@ a{outline:0 !important; }
        <ul class="pagination justify-content-center">
         <c:choose>
          <c:when test="${boards.first}">
-           <li class="page-item disabled"><a class="page-link" href="?page=${boards.number-1}">Previous</a></li>
+           <li class="page-item disabled"><a class="page-link" href="?page=${boards.number-1}"><</a></li>
          </c:when>
        <c:otherwise>
-          <li class="page-item"><a class="page-link" href="?page=${boards.number-1}#pagea">Previous</a></li>
+          <li class="page-item"><a class="page-link" href="?page=${boards.number-1}#pagea"><</a></li>
        </c:otherwise>
      </c:choose>
 
@@ -53,18 +56,17 @@ a{outline:0 !important; }
 
    <c:choose>
        <c:when test="${boards.last}">
-         <li class="page-item disabled"><a class="page-link" href="?page=${boards.number+1}">Next</a></li>
+         <li class="page-item disabled"><a class="page-link" href="?page=${boards.number+1}">></a></li>
        </c:when>
        <c:otherwise>
           <li class="page-item">
-             <a class="page-link" href="?page=${boards.number+1}#pagea" id="pageNext" >Next</a>
+             <a class="page-link" href="?page=${boards.number+1}#pagea" id="pageNext" >></a>
           </li>
         </c:otherwise>
        </c:choose>
       </ul>
      </nav>
-   <p>전체게시글 수 : ${boards.totalElements} </p>
-   현재페이지 ${boards.number + 1} /총 페이지 : ${boards.totalPages}
+
 </div>
 
 <script>

@@ -1,0 +1,29 @@
+{{>layouts/header}}
+
+<div class="container">
+    <table class="table">
+        <thead>
+        <tr>
+            <th scope="col">ID</th>
+            <th scope="col">사용자</th>
+            <th scope="col">Title</th>
+            <th scope="col">Content</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{#boards}}
+            <tr>
+                <th>{{id}}</th>
+                <td>{{username}}</td>
+                <!--  제목에 링크걸기  -->
+                <td><a href="/board/{{id}}">{{title}}</a></td>
+                <td>{{content}}</td>
+            </tr>
+        {{/boards}}
+        </tbody>
+    </table>
+    <a href="/boards/new" class="btn btn-primary"> 새글 작성 </a>
+</div>
+
+
+{{>layouts/footer}}

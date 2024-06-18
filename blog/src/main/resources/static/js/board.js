@@ -126,7 +126,7 @@ let index={
              location.href="/";
           }else{
                alert("로그인을 해주세요.");
-               location.href="/user/loginForm";
+               location.href="/auth/loginForm";
           }
        }).fail(function(error){
            alert(JSON.stringify(error));

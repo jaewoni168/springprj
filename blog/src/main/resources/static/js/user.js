@@ -92,7 +92,7 @@ let index={
                                     return false;  // 다음 단계로 진행 X
                                       }
                                       console.log(resp.data);
-                                      location.href="/";
+                                      location.href="/board/form";
                                     }).fail(function(error){
                                       alert(JSON.stringify(error));
                                   });
@@ -165,7 +165,7 @@ let index={
                    function(resp){
                        if(resp.data==1){
                              alert("회원가입이 완료되었습니다.");
-                             location.href="/";
+                             location.href="loginForm";
                            }else{
                              alert("아이디가 중복되었습니다.");
                              return ;

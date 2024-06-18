@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+
+<h1 th:text="${message}">메시지가 없습니다.</h1>
+<h2 th:text="${product.name}">제품명</h2>
+<h2 th:text="${product.unitCost}">1200</h2>
+<p th:if="${product.name}"> 맥주 있습니다.</p>
+<p th:unless="${product.name}"> 맥주 없습니다.</p>
+
+<table>
+    <tr>
+        <th>제품명</th>
+        <th>가격</th>
+    </tr>
+    <tr th:each="product:${productList}">
+        <th th:text="${product.name}">맥주</th>
+        <th th:text="${product.unitCost}">1000원</th>
+    </tr>
+</table>
+
+</body>
+</html>

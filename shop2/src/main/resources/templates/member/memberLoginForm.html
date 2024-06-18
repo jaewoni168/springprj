@@ -31,9 +31,7 @@
       <input type="password" name="password" id="password" class="form-control" placeholder="비밀번호 입력">
     </div>
     <p th:if="${loginErrorMsg}" class="error" th:text="${loginErrorMsg}"></p>
-    <button class="btn btn-primary">로그인</button>
-
-<!--      <a href="/oauth2/authorization/github" class="btn">github 로그인</a>-->
+    <button type="submit" class="btn btn-primary">로그인</button>
 <!--    <a href="/oauth2/authorization/google" class="btn">google 로그인</a>-->
 
     <div class="d-grid gap-2">

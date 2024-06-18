@@ -27,7 +27,8 @@
        <input type="email" id="email">
     </div>
 </form>
-     <button id="join--submit" class="btn btn-primary">회원가입</button>
+<button id="join--submit" type="button" class="btn btn-primary">
+회원가입</button>
 </div>
 
 <script src="/js/join.js"></script>

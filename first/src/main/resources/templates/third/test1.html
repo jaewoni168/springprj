@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+<h1>학생명단 출력</h1>
+<table>
+    <tr>
+        <th>아이디</th>
+        <th>학번</th>
+        <th>이름</th>
+        <th>이메일</th>
+    </tr>
+    <tr th:each="s:${studentList}">
+        <td th:text="${s.id}">id</td>
+        <td th:text="${s.studentNumber}"></td>
+        <td th:text="${s.studentName}">이름</td>
+        <td th:text="${s.email}">이메일</td>
+    </tr>
+</table>
+
+</body>
+</html>

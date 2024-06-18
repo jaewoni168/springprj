@@ -1,0 +1,70 @@
+{{>layouts/header}}
+
+<div class="container">
+<table class="table">
+    <thead>
+    <tr>
+        <th scope="col">ID</th>
+        <th scope="col">Title</th>
+        <th scope="col">Content</th>
+    </tr>
+    </thead>
+    <tbody>
+    {{#articleList}}
+        <tr>
+            <th>{{id}}</th>
+            <!--  제목에 링크걸기  -->
+            <td><a href="/articles/{{id}}">{{title}}</a></td>
+            <td>{{content}}</td>
+        </tr>
+    {{/articleList}}
+    </tbody>
+</table>
+    <a href="/articles/new" class="btn btn-primary"> 새글 작성 </a>
+</div>
+
+<!-- 페이징 처리 UI를 구현 -->
+<div class="container mx-auto mt-2 text-center">
+<nav aria-label="Page navigation example m-3">
+    <ul class="pagination">
+        {{#preStatus}}
+            <li class="page-item"><a class="page-link" href="/articles?pageNum={{preVious}}">이전</a> </li>
+        {{/preStatus}}
+
+        {{#pageNums}}
+            <li class="page-item" aria-current="page"><a class="page-link active" href="/articles?pageNum={{.}}">{{.}}</a></li>
+        {{/pageNums}}
+
+        {{#nextStatus}}
+            <li class="page-item"><a class="page-link" href="/articles?pageNum={{next}}">다음</a> </li>
+        {{/nextStatus}}
+    </ul>
+</nav>
+{{pageNum}} Page
+</div>
+
+<script>
+
+      var pageItem=document.querySelectorAll('[aria-current="page"]');
+
+      const queryString = window.location.search;
+      const params = {};
+
+     queryString.substring(1).split('&').forEach(param => {
+        const [key, value] = param.split('=');
+         params[key] = value;
+    });
+
+    console.log(params); // { pageNum : 1 }
+
+    if(params.pageNum != undefined){
+         pageItem[params.pageNum].classList.add("active");
+    }else{
+      params.pageNum=0;
+      pageItem[params.pageNum].classList.add("active");
+         location.href="/articles?pageNum=1";
+    }
+
+</script>
+
+{{>layouts/footer}}

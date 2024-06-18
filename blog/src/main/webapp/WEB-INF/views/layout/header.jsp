@@ -30,7 +30,7 @@ pageEncoding="UTF-8"%>
 <body>
 <nav class="navbar navbar-expand-md bg-dark navbar-dark">
    <!-- Brand -->
-     <a class="navbar-brand" href="/">Home</a>
+     <a class="navbar-brand" href="/">고객센터</a>
     <!-- Toggler/collapsibe Button -->
    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
       <span class="navbar-toggler-icon"></span>
@@ -52,8 +52,6 @@ pageEncoding="UTF-8"%>
              <li class="nav-item"> <a class="nav-link" href="/logout">로그아웃</a> </li>
 
              <li class="nav-item"><a class="nav-link" href="/user/deleteForm">회원탈퇴</a> </li>
-
-             <li class="text-white" mt-2> ${pageContext.request.userPrincipal.name} 님</li>
           </ul>
        </c:otherwise>
    </c:choose>

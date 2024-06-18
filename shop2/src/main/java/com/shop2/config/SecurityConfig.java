@@ -40,6 +40,11 @@ public class SecurityConfig{
                         .invalidateHttpSession(true)
                         .logoutSuccessUrl("/").permitAll());
 
+//                .oauth2Login(oauth2 -> oauth2
+//                        .loginPage("members/login")
+//                        .defaultSuccessUrl("/member/oauth2signup"));
+
+
         http.exceptionHandling((exception)-> exception.authenticationEntryPoint(new CustomAuthenticationEntryPoint()));
         return http.build();
     }
