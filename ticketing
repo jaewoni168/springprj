@@ -1,0 +1,107 @@
+# ./venv/Scripts/activate
+
+# lgnIdOrg = 'dlwodnjs123484@gmail.com'
+
+# a = []
+
+
+
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
+import time
+import pyautogui
+
+# 카카오 로그인 작성 함수
+def typing(keyword, delay):
+    for char in keyword:
+        pyautogui.press(char)
+        time.sleep(delay / 1000)
+
+# 카카오 아이디 리스트 변환 함수
+def lgnList(lgnblkList, keyword):
+    for char in keyword:
+        lgnblkList.append(char)
+
+lgnIdOrg = 'dlwodnjs123484@gmail.com'  # 카카오 ID
+lgnPwOrg = "aA@6115142"                # 카카오 PW
+    
+lgnId = []
+lgnPw = []
+    
+lgnList(lgnId, lgnIdOrg)
+lgnList(lgnPw, lgnPwOrg)
+
+url = "https://nol.interpark.com/ticket"
+# url = "https://tickets.interpark.com/goods/24013437"
+
+# 셀레니움 옵션
+options = Options()
+options.add_argument("--start-maximized")
+options.add_experimental_option("excludeSwitches", ["enable-logging"])
+options.add_experimental_option("detach", True)
+options.add_argument('--incognito')
+
+driver = webdriver.Chrome(options=options)
+
+# 시작
+driver.get(url)
+
+# 로그인 버튼 클릭
+driver.find_element(By.XPATH, '//*[@id="__next"]/div/header[2]/div/div[1]/div[2]/menu[2]/button[1]').click()
+time.sleep(480 / 1000)
+
+# 카카오 로그인 버튼 클릭
+driver.find_element(By.XPATH, '//*[@id="__next"]/div/div/div/div[2]/div[1]/div/div/div/div/div[2]/button[1]').click()
+time.sleep(650 / 1000)
+
+try:
+    # 카카오 로그인
+    pyautogui.press("\t")
+    
+    typing(lgnId, 5)
+    pyautogui.press("\t")
+    pyautogui.press("\t")
+    
+    typing(lgnPw, 5)
+    pyautogui.press("\t")
+    pyautogui.press("\t")
+    pyautogui.press("\t")
+    pyautogui.press("\t")
+    pyautogui.press("\n")
+    
+    # 콘서트 검색
+    time.sleep(1300 / 1000)
+    driver.find_element(By.XPATH, '//*[@id="__next"]/div/header[2]/div/div[1]/div[1]/form/div/div').click()
+    driver.find_element(By.XPATH, '//*[@id="__next"]/div/header[2]/div/div[1]/div[1]/form/div/input').send_keys("콜드플레이")
+    driver.find_element(By.XPATH, '//*[@id="__next"]/div/header[2]/div/div[1]/div[1]/form/button').click()
+    time.sleep(600 / 1000)
+    
+    # 원하는 콘서트 제목 클릭
+    
+    driver.find_element(By.XPATH, '//*[@id="contents"]/div/div/div[2]/div[2]/a[1]/ul/li[1]').click()
+    time.sleep(2)
+    time.sleep(2)
+    
+    # 팝업 닫기
+    original_window = driver.current_window_handle
+    
+    WebDriverWait(driver, 10).until(lambda d: len(d.window_handles) > 1)
+    
+    for handle in driver.window_handles:
+        if handle != original_window:
+            driver.switch_to.window(handle)
+            break
+    
+    closePopup = driver.find_element(By.CSS_SELECTOR, '#product')
+    driver.execute_script("arguments[0].setAttribute('style', 'pointer-events: auto;')", closePopup)
+    driver.find_element(By.XPATH, '//*[@id="popup-prdGuide"]/div/div[3]/div/a').click()
+    
+    print("성공했습니다")
+except:
+    print("실패했습니다")
+    
+    
