@@ -1,11 +1,15 @@
-# 셀레니움 가상환경 만들고 pip install 하기
+# 가상환경 만들기
+# pip install virtualenv
+# pip install selenium
+# pip install pyautogui
+# cd .\ticketing\
+# python -m virtualenv venv
 # ./venv/Scripts/activate
+#  '이 시스템에서 스크립트를 실행할 수 없으므로' 오류 발생 시
+# window powershell 를 관리자모드로 실행시킨다음 Set-ExecutionPolicy Unrestricted -> A -> 다시 vsCode로 돌아와서 ./venv/Scripts/activate 실행
+##########################################################################################################################################
 
 # lgnIdOrg = 'dlwodnjs123484@gmail.com'
-
-# a = []
-
-
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
