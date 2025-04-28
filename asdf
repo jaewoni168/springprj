@@ -1,16 +1,79 @@
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.chrome.service import Service
-
 import time
 import pyautogui
 import random
 import subprocess
+import random
+import pyperclip
 
-# 일반 로그인 작성 함수
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from math import comb
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+import easyocr  # 이거 안되면 C++설치필요
+import ssl
+
+###############################################################################
+ssl._create_default_https_context = ssl._create_unverified_context
+'''
+마우스 이동
+'''
+# 커서 커브
+def curCurve(points, t):
+    n = len(points) -1
+    x = 0
+    y = 0
+    for i , (px, py) in enumerate(points):
+        coeff = comb(n, i) * ((1 - t) ** (n - i)) * (t ** i)
+        x += coeff * px
+        y += coeff * py
+    return (x, y)
+
+# 커서 이동 속도 자동 조절
+def curSpeed(t):
+    if t<0.5:
+        return 2 * t * t
+    else:
+        return -1 + (4 - 2 * t) * t
+def curMove(targetX, targetY, control_points = 0, duration = 0, steps = 0):
+    findCurX, findCurY = pyautogui.position()
+    points = [(findCurX, findCurY)]
+    for _ in range(control_points):
+        randX = random.randint(min(findCurX, targetX), max(findCurX, targetX))
+        randY = random.randint(min(findCurY, targetY), max(findCurY, targetY))
+        points.append((randX, randY))
+    points.append((targetX, targetY))
+
+    # 이동경로 계산
+    path = []
+    for i in range(steps):
+        linear_t = i / (steps - 1)
+        speed_t = curSpeed(linear_t)
+        x, y = curCurve(points.copy(), speed_t)
+        jitter_x = random.uniform(-0.1, 0.1)
+        jitter_y = random.uniform(-0.1, 0.1)
+        path.append((int(x + jitter_x), int(y + jitter_y)))
+    total_time = duration
+    for i in range(1, len(path)):
+        x1, y1 = path[i-1]
+        x2, y2 = path[i]
+        move_x = x2 - x1
+        move_y = y2 - y1
+        pyautogui.moveRel(move_x, move_y)
+
+# 입력 예시
+# curMove(800, 400, control_points=3, duration = 0.1, steps = 5)
+###############################################################################
+
+def popUpChange():
+    original_window = driver.current_window_handle
+    WebDriverWait(driver, 10).until(lambda d: len(d.window_handles) > 1)
+    driver.switch_to.window(driver.window_handles[-1])
+###############################################################################
+'''
+입력 및 정보 변환
+'''
+# 타이핑
 def typing(keyword, delay):
     for char in keyword:
         delay = random.choice([10, 13, 20, 25])
@@ -18,109 +81,126 @@ def typing(keyword, delay):
         pyautogui.press(char)
         time.sleep(delay / 1000)
 
-# 일반 아이디 리스트 변환 함수
-def lgnList(lgnblkList, keyword):
+# 리스트 변환
+def makeList(blkList, keyword):
     for char in keyword:
-        lgnblkList.append(char)
+        blkList.append(char)
 
+# 탭 반복
 def loopTab(num):  
     for num in range(1, num + 1):
         pyautogui.press("\t")
+###############################################################################
 
-lgnIdOrg = 'TIFFANYLU19'                  # ID
-lgnPwOrg = "Frogcute1*"                   # PW
-url = "https://nol.interpark.com/ticket"  # url
-
+###############################################################################
 lgnId = []
 lgnPw = []
 urlList = []
+searchList = []
 
-lgnList(lgnId, lgnIdOrg)
-lgnList(lgnPw, lgnPwOrg)
-lgnList(urlList, url)
+'''
+정보( 원하는 ID, PW, url을 입력하시오)
+'''
+lgnIdOrg = 'TIFFANYLU19'                  # ID
+lgnPwOrg = "Frogcute1*"                   # PW
 
-# 셀레니움 옵션
+makeList(lgnId, lgnIdOrg)
+makeList(lgnPw, lgnPwOrg)
+# makeList(urlList, url)
+# makeList(searchList, search)
+###############################################################################
+                                                                                                          
 subprocess.Popen(r'C:/Program Files/Google/Chrome/Application/chrome.exe --remote-debugging-port=9222 --user-data-dir="C:/chromeCookie"')
-
-options = Options()
-options.add_argument("--start-maximized")
-options.add_argument("--window-size=1920x1080")  # 사람이 사용하는 화면 크기처럼 설정
-options.add_argument('--incognito')
-options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
-options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
-options.add_experimental_option("detach", True)
-
-driver = webdriver.Chrome(options=options)
-print(urlList)
-# 시작
-driver.get(url)
 time.sleep(2)
 
-typing(urlList, 0)
+chrome_options = Options()
+chrome_options.debugger_address = f"127.0.0.1:9222"
 
-# 로그인 버튼 클릭
-driver.find_element(By.XPATH, '//*[@id="__next"]/div/header[2]/div/div[1]/div[2]/menu[2]/button[1]').click()
-time.sleep(480 / 1000)
+driver = None  # 드라이버 객체를 미리 선언
+driver = webdriver.Chrome(options=chrome_options)
+print(f"Selenium이 remote debugging 포트 9222으로 실행 중인 Chrome에 연결되었습니다.")
 
-# 기존 인터파크 로그인 버튼 클릭
-driver.find_element(By.XPATH, '//*[@id="__next"]/div/div/div/div[2]/div[1]/div/div/div/div/div[2]/div/button').click()
-time.sleep(650 / 1000)
+driver.get("https://www.google.com")
 
+curMove(696, 66, control_points=3, duration = 0.1, steps = 5)
+pyautogui.click()
+pyautogui.hotkey('ctrl', 'a')
+pyautogui.press("backspace")
 
-try:
-    # # CAPTCHA가 나타날 때까지 대기 (최대 10초)
-    # captcha_frame = WebDriverWait(driver, 10).until(
-    #     EC.presence_of_element_located((By.ID, "cf-chl-widget-hzb3r"))
-    # )
-    # driver.switch_to.frame(captcha_frame)
+url = pyperclip.copy("https://nol.interpark.com/ticket")  # url
+pyautogui.hotkey('ctrl', 'v')
+pyautogui.press("\n")
+time.sleep(2)
 
-    # # "사람인지 확인하십시오" 체크박스 클릭
-    # checkbox = WebDriverWait(driver, 10).until(
-    #     EC.presence_of_element_located((By.ID, "checkbox"))
-    # )
-    # checkbox.click()
-    
-    # # 로그인
-    loopTab(2)
-    
-    typing(lgnId, 5)
-    loopTab(2)
-    
-    typing(lgnPw, 5)
-    loopTab(6)
-    
-    # pyautogui.press("\n")
-    
-    # 콘서트 검색
-    # time.sleep(1500 / 1000)
-    # driver.find_element(By.XPATH, '//*[@id="__next"]/div/header[2]/div/div[1]/div[1]/form/div/div').click()
-    # driver.find_element(By.XPATH, '//*[@id="__next"]/div/header[2]/div/div[1]/div[1]/form/div/input').send_keys("콜드플레이")
-    # driver.find_element(By.XPATH, '//*[@id="__next"]/div/header[2]/div/div[1]/div[1]/form/button').click()
-    # time.sleep(600 / 1000)
-    
-    # # 원하는 콘서트 제목 클릭
-    
-    # driver.find_element(By.XPATH, '//*[@id="contents"]/div/div/div[2]/div[2]/a[1]/ul/li[1]').click()
-    # time.sleep(2)
-    # time.sleep(2)
-    
-    # # 팝업 닫기
-    # original_window = driver.current_window_handle
-    
-    # WebDriverWait(driver, 10).until(lambda d: len(d.window_handles) > 1)
-    
-    # for handle in driver.window_handles:
-    #     if handle != original_window:
-    #         driver.switch_to.window(handle)
-    #         break
-    
-    # closePopup = driver.find_element(By.CSS_SELECTOR, '#product')
-    # driver.execute_script("arguments[0].setAttribute('style', 'pointer-events: auto;')", closePopup)
-    # driver.find_element(By.XPATH, '//*[@id="popup-prdGuide"]/div/div[3]/div/a').click()
-    
-    # driver.find_element(By.XPATH, '//*[@id="productSide"]/div/div[2]/a[1]').click()
-    
-    
-    # print("성공했습니다")
-except:
-    print("실패했습니다")
+curMove(1463, 183, control_points=3, duration = 0.1, steps = 5)
+pyautogui.click()
+time.sleep(1)
+
+curMove(955, 852, control_points=3, duration = 0.1, steps = 5)
+pyautogui.click()
+time.sleep(1)
+
+loopTab(2)
+typing(lgnId, 5)
+
+loopTab(2)
+typing(lgnPw, 5)
+
+curMove(837, 557, control_points=3, duration = 0.1, steps = 5)
+lgnRgbColor = pyautogui.pixel(837, 557)
+
+if lgnRgbColor == (65, 84, 255):
+    pyautogui.press("\n")
+else:
+    pyautogui.click()
+    time.sleep(3)
+    pyautogui.click()
+    pyautogui.press("\n")
+
+time.sleep(1)
+
+curMove(603, 118, control_points=3, duration = 0.1, steps = 5)
+pyautogui.click()
+
+search = pyperclip.copy("뮤지컬 〈알라딘〉 한국 초연 - 부산 (ALADDIN The Musical)")                          # 검색
+pyautogui.hotkey('ctrl', 'v')
+pyautogui.press("\n")
+time.sleep(700 / 1000)
+
+curMove(778, 656, control_points=3, duration = 0.1, steps = 5)
+pyautogui.click()
+
+popUpChange()
+
+time.sleep(2)
+driver.find_element(By.XPATH, '//*[@id="popup-prdGuide"]/div/div[3]/button').click()
+driver.find_element(By.XPATH, '//*[@id="productSide"]/div/div[2]/a[1]').click()
+time.sleep(1)
+
+popUpChange()
+time.sleep(2)
+driver.find_element(By.XPATH, '//*[@id="divBookNoticeLayer"]/div[2]/div[1]/a/img').click()
+
+driver.switch_to.frame(driver.find_element(By.XPATH, "//*[@id='ifrmSeat']"))
+
+# 부정예매방지문자 OCR 생성
+reader = easyocr.Reader(['en'])  # 안되면 https://0mini.tistory.com/44
+
+# 부정예매방지 문자 이미지 요소 선택
+capchaPng = driver.find_element(By.XPATH,'//*[@id="imgCaptcha"]')
+
+# 부정예매방지문자 입력
+while capchaPng:
+    result = reader.readtext(capchaPng.screenshot_as_png, detail=0)
+    capchaValue = result[0].replace(' ', '').replace('5', 'S').replace('0', 'O').replace('$', 'S').replace(',', '')\
+        .replace(':', '').replace('.', '').replace('+', 'T').replace("'", '').replace('`', '')\
+        .replace('1', 'L').replace('e', 'Q').replace('3', 'S').replace('€', 'C').replace('{', '').replace('-', '')
+        
+    # 입력
+    driver.find_element(By.XPATH,'//*[@id="txtCaptcha"]').click()
+    chapchaText = driver.find_element(By.XPATH,'//*[@id="txtCaptcha"]')
+    chapchaText.send_keys(capchaValue)
+        
+#     #입력완료 버튼 클릭
+#     driver.find_element(By.XPATH,'//*[@id="divRecaptcha"]/div[1]/div[4]/a[2]').click()
+print("YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY")
