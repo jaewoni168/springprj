@@ -9,104 +9,368 @@
 # window powershell 를 관리자모드로 실행시킨다음 Set-ExecutionPolicy Unrestricted -> A -> 다시 vsCode로 돌아와서 ./venv/Scripts/activate 실행
 ##########################################################################################################################################
 
-# lgnIdOrg = 'dlwodnjs123484@gmail.com'
-
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-
 import time
 import pyautogui
+import random
+import subprocess
+import random
+import pyperclip
+import easyocr
+import ssl
+import datetime
+import cv2
+import mss
+import numpy as np
 
-# 카카오 로그인 작성 함수
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from math import comb
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+################################################################### 크롬 연결 #######################################################################
+ssl._create_default_https_context = ssl._create_unverified_context
+subprocess.Popen(r'C:/Program Files/Google/Chrome/Application/chrome.exe --remote-debugging-port=9222 --user-data-dir="C:/chromeCookie"')
+time.sleep(2)
+
+chrome_options = Options()
+chrome_options.debugger_address = f"127.0.0.1:9222"
+
+driver = None  # 드라이버 객체를 미리 선언
+driver = webdriver.Chrome(options=chrome_options)
+print(f"Selenium이 remote debugging 포트 9222으로 실행 중인 Chrome에 연결되었습니다.")
+
+driver.get("https://www.google.com")
+
+####################################################################  함수  ########################################################################
+'''
+마우스 이동
+'''
+# 커서 커브
+def curCurve(points, t):
+    n = len(points) -1
+    x = 0
+    y = 0
+    for i , (px, py) in enumerate(points):
+        coeff = comb(n, i) * ((1 - t) ** (n - i)) * (t ** i)
+        x += coeff * px
+        y += coeff * py
+    return (x, y)
+
+# 커서 이동 속도 자동 조절
+def curSpeed(t):
+    if t<0.5:
+        return 2 * t * t
+    else:
+        return -1 + (4 - 2 * t) * t
+def curMove(targetX, targetY, control_points = 0, duration = 0, steps = 0):
+    findCurX, findCurY = pyautogui.position()
+    points = [(findCurX, findCurY)]
+    for _ in range(control_points):
+        randX = random.randint(min(findCurX, targetX), max(findCurX, targetX))
+        randY = random.randint(min(findCurY, targetY), max(findCurY, targetY))
+        points.append((randX, randY))
+    points.append((targetX, targetY))
+
+    # 이동경로 계산
+    path = []
+    for i in range(steps):
+        linear_t = i / (steps - 1)
+        speed_t = curSpeed(linear_t)
+        x, y = curCurve(points.copy(), speed_t)
+        jitter_x = random.uniform(-0.1, 0.1)
+        jitter_y = random.uniform(-0.1, 0.1)
+        path.append((int(x + jitter_x), int(y + jitter_y)))
+    
+    for i in range(1, len(path)):
+        x1, y1 = path[i-1]
+        x2, y2 = path[i]
+        move_x = x2 - x1
+        move_y = y2 - y1
+        pyautogui.moveRel(move_x, move_y)
+
+# 입력 예시
+# curMove(800, 400, control_points=3, duration = 0.1, steps = 5)
+
+'''
+사진으로 위치 찾기
+'''
+def findWord(imgPath):
+    while True:
+        try:
+            with mss.mss() as sct:
+               monitor = sct.monitors[1]
+               sct_img = sct.grab(monitor)
+               screen_img = np.array(sct_img)
+               screen_gray = cv2.cvtColor(screen_img, cv2.COLOR_RGB2GRAY)
+               
+            template = cv2.imread(imgPath, cv2.IMREAD_GRAYSCALE)
+            
+            if template is None:
+                return []
+            h, w = template.shape
+        
+            result = cv2.matchTemplate(screen_gray, template, cv2.TM_CCOEFF_NORMED)
+            threshold = 0.8  # 유사도 임계값 (조정 가능)
+            locations = np.where(result >= threshold)
+        
+            found_coordinates = []
+        
+            for pt in zip(*locations[::-1]):  # x, y 좌표 순서로 변경
+                center_x = pt[0] + w // 2
+                center_y = pt[1] + h // 2
+        
+            # curMove(int(center_x), int(center_y), control_points=3, duration = 0.1, steps = 5)
+            payment()
+            break
+        except:
+            print("다시")
+
+'''
+화면 이동 시 화면 전환
+'''
+def popUpChange():
+    original_window = driver.current_window_handle
+    WebDriverWait(driver, 10).until(lambda d: len(d.window_handles) > 1)
+    driver.switch_to.window(driver.window_handles[-1])
+
+
+'''
+입력 및 정보 변환
+'''
+# 타이핑
 def typing(keyword, delay):
     for char in keyword:
+        delay = random.choice([10, 13, 20, 25])
+        
         pyautogui.press(char)
         time.sleep(delay / 1000)
 
-# 카카오 아이디 리스트 변환 함수
-def lgnList(lgnblkList, keyword):
+# 리스트 변환
+def makeList(blkList, keyword):
     for char in keyword:
-        lgnblkList.append(char)
+        blkList.append(char)
 
-lgnIdOrg = 'dlwodnjs123484@gmail.com'  # 카카오 ID
-lgnPwOrg = "aA@6115142"                # 카카오 PW
-    
+# 탭 반복
+def loopTab(num):  
+    for num in range(1, num + 1):
+        pyautogui.press("\t")
+
+
+'''
+정보( 원하는 ID, PW, url을 입력하시오)
+'''
+# 입력 금지
 lgnId = []
 lgnPw = []
+urlList = []
+searchList = []
+
+# "" 안을 원하는 걸로 수정
+lgnIdOrg = "TIFFANYLU19"                  # ID
+lgnPwOrg = "Frogcute1*"                   # PW
+
+makeList(lgnId, lgnIdOrg)
+makeList(lgnPw, lgnPwOrg)
+
+
+'''
+대기 화면
+'''
+def waitingScreen():
+    while True:
+        try:
+            driver.find_element(By.CLASS_NAME, "StatusBox_barActive__p1t_g.false")
+            print("아직 대기 화면입니다. 잠시 후 다시 확인합니다.")
+            time.sleep(1)
+        except:
+            break
+
+'''
+좌석 선택
+'''
+def select():
+    # print(driver.window_handles)
+    # driver.switch_to.window(driver.window_handles[-1])
+    # driver.switch_to.frame(driver.find_element(By.XPATH,'//*[@id="ifrmSeat"]'))
     
-lgnList(lgnId, lgnIdOrg)
-lgnList(lgnPw, lgnPwOrg)
+    # # 좌석등급 선택
+    # #driver.find_element(By.XPATH,'//*[@id="GradeRow"]/td[1]/div/span[2]').click()
+    
+    # while True:
+    #     # 세부 구역 선택
+    #     driver.find_element(By.XPATH,'//*[@id="GradeDetail"]/div/ul/li[1]/a').click()
+        
+    #     # 좌석선택 아이프레임으로 이동
+    #     driver.switch_to.frame(driver.find_element(By.XPATH,'//*[@id="ifrmSeatDetail"]'))
+        
+    #     # 좌석이 있으면 좌석 선택
+    #     try:
+    #         driver.find_element(By.XPATH,'//*[@id="Seats"]').click()
+    #         # 결제 함수 실행
+    #         # payment()
+    #         break
+            
+    #     # 좌석이 없으면 다시 조회
+    #     except:
+    #         print('******************************다시선택')
+    #         driver.switch_to.default_content()
+    #         driver.switch_to.frame(driver.find_element(By.XPATH,'//*[@id="ifrmSeat"]'))
+    #         driver.find_element(By.XPATH,'/html/body/form[1]/div/div[1]/div[3]/div/p/a/img').click()
+    #         time.sleep(1)
+    findWord("priceDiscount.png")
+            
 
-url = "https://nol.interpark.com/ticket"
-# url = "https://tickets.interpark.com/goods/24013437"
+'''
+결제
+'''
+def payment():
+    
 
-# 셀레니움 옵션
-options = Options()
-options.add_argument("--start-maximized")
-options.add_experimental_option("excludeSwitches", ["enable-logging"])
-options.add_experimental_option("detach", True)
-options.add_argument('--incognito')
+###################################################################################################################################################
 
-driver = webdriver.Chrome(options=options)
+# 인터파크 홈페이지 들어가기
+curMove(696, 66, control_points=3, duration = 0.1, steps = 5)
+pyautogui.click()
+pyautogui.hotkey('ctrl', 'a')
+pyautogui.press("backspace")
 
-# 시작
-driver.get(url)
+url = pyperclip.copy("https://tickets.interpark.com/goods/P0004249")  # url
+pyautogui.hotkey('ctrl', 'v')
+pyautogui.press("\n")
+time.sleep(2)
 
-# 로그인 버튼 클릭
-driver.find_element(By.XPATH, '//*[@id="__next"]/div/header[2]/div/div[1]/div[2]/menu[2]/button[1]').click()
-time.sleep(480 / 1000)
+# 로그인
+curMove(1463, 183, control_points=3, duration = 0.1, steps = 5)
+pyautogui.click()
+time.sleep(1)
 
-# 카카오 로그인 버튼 클릭
-driver.find_element(By.XPATH, '//*[@id="__next"]/div/div/div/div[2]/div[1]/div/div/div/div/div[2]/button[1]').click()
-time.sleep(650 / 1000)
+curMove(955, 852, control_points=3, duration = 0.1, steps = 5)
+pyautogui.click()
+time.sleep(1)
+
+loopTab(2)
+typing(lgnId, 5)
+
+loopTab(2)
+typing(lgnPw, 5)
+
+curMove(837, 557, control_points=3, duration = 0.1, steps = 5)
+lgnRgbColor = pyautogui.pixel(837, 557)
+
+if lgnRgbColor == (65, 84, 255):
+    pyautogui.press("\n")
+else:
+    pyautogui.click()
+    time.sleep(3)
+    pyautogui.click()
+    pyautogui.press("\n")
+
+time.sleep(1)
+
+# curMove(603, 118, control_points=3, duration = 0.1, steps = 5)
+# pyautogui.click()
+
+# # 콘서트 검색
+# # search = pyperclip.copy("RUNSEOKJIN_EP.TOUR in GOYANG")
+# search = pyperclip.copy("뮤지컬 〈팬텀〉 10주년 기념 공연")
+# # search = pyperclip.copy("뮤지컬 〈프리다〉")
+
+# pyautogui.hotkey('ctrl', 'v')
+# pyautogui.press("\n")
+# time.sleep(700 / 1000)
+
+# # 콘서트 클릭
+# curMove(778, 656, control_points=3, duration = 0.1, steps = 5)
+# pyautogui.click()
+
+# popUpChange()
+# time.sleep(2)
+
+# 팝업 닫기
+try:
+    driver.find_element(By.XPATH, '//*[@id="popup-prdGuide"]/div/div[3]/div/a').click()
+except:
+    pass
+
+# 예매하기 버튼 클릭
+try:
+    target_time = driver.find_element(By.CSS_SELECTOR, 'p.openGuideTime').text
+    time_only = target_time.split(" ")[1] + ":00"
+
+    time_str = time_only.split(" ")[1]
+
+    # datetime 객체로 변환
+    hour, minute = map(int, time_str.split(':'))
+    dt_object = datetime.datetime(2025, 4, 29, hour, minute, 0)
+
+    # 1초 빼기
+    dt_object_minus_1sec = dt_object - datetime.timedelta(seconds=2)
+
+    # HH:MM:SS 형식으로 다시 문자열로 만들기
+    time_only_minus_1sec = dt_object_minus_1sec.strftime("%H:%M:%S")
+    
+    while True:
+        now = datetime.dateTime.now()
+        if now >= time_only_minus_1sec:
+            pass
+        else:
+            pyautogui.press("f5")
+            break
+        time.sleep(1)
+except:
+    driver.find_element(By.XPATH, '//*[@id="productSide"]/div/div[2]/a[1]').click()
+    time.sleep(1)
+
+popUpChange()
+time.sleep(0.5)
+
+# 대기화면이 끝날때 까지 대기
+waitingScreen()
+
+'''
+부정예매방지 문자
+'''
+popUpChange()
+time.sleep(2)
 
 try:
-    # 카카오 로그인
-    pyautogui.press("\t")
-    
-    typing(lgnId, 5)
-    pyautogui.press("\t")
-    pyautogui.press("\t")
-    
-    typing(lgnPw, 5)
-    pyautogui.press("\t")
-    pyautogui.press("\t")
-    pyautogui.press("\t")
-    pyautogui.press("\t")
-    pyautogui.press("\n")
-    
-    # 콘서트 검색
-    time.sleep(1300 / 1000)
-    driver.find_element(By.XPATH, '//*[@id="__next"]/div/header[2]/div/div[1]/div[1]/form/div/div').click()
-    driver.find_element(By.XPATH, '//*[@id="__next"]/div/header[2]/div/div[1]/div[1]/form/div/input').send_keys("콜드플레이")
-    driver.find_element(By.XPATH, '//*[@id="__next"]/div/header[2]/div/div[1]/div[1]/form/button').click()
-    time.sleep(600 / 1000)
-    
-    # 원하는 콘서트 제목 클릭
-    
-    driver.find_element(By.XPATH, '//*[@id="contents"]/div/div/div[2]/div[2]/a[1]/ul/li[1]').click()
-    time.sleep(2)
-    time.sleep(2)
-    
-    # 팝업 닫기
-    original_window = driver.current_window_handle
-    
-    WebDriverWait(driver, 10).until(lambda d: len(d.window_handles) > 1)
-    
-    for handle in driver.window_handles:
-        if handle != original_window:
-            driver.switch_to.window(handle)
-            break
-    
-    closePopup = driver.find_element(By.CSS_SELECTOR, '#product')
-    driver.execute_script("arguments[0].setAttribute('style', 'pointer-events: auto;')", closePopup)
-    driver.find_element(By.XPATH, '//*[@id="popup-prdGuide"]/div/div[3]/div/a').click()
-    
-    print("성공했습니다")
+    driver.find_element(By.XPATH, '//*[@id="divBookNoticeLayer"]/div[2]/div[1]/a/img').click()
 except:
-    print("실패했습니다")
+    pass
+driver.switch_to.frame(driver.find_element(By.XPATH, "//*[@id='ifrmSeat']"))
+try:
+    # 부정예매방지 문자 이미지 요소 선택
+    capchaPng = driver.find_element(By.XPATH,'//*[@id="imgCaptcha"]')
+    # 부정예매방지문자 OCR 생성
+    curMove(409, 495, control_points=3, duration = 0.1, steps = 5)
+    pyautogui.click()
+    reader = easyocr.Reader(['en'])
+    # 부정예매방지문자 입력
+    while capchaPng:
+        result = reader.readtext(capchaPng.screenshot_as_png, detail=0)
+        capchaValue = result[0].replace(' ', '').replace('5', 'S').replace('0', 'O').replace('$', 'S').replace(',', '')\
+            .replace(':', '').replace('.', '').replace('+', 'T').replace("'", '').replace('`', '')\
+            .replace('1', 'L').replace('e', 'Q').replace('3', 'S').replace('€', 'C').replace('{', '').replace('-', '')
+        pyperclip.copy(capchaValue)
+        pyautogui.hotkey('ctrl', 'v')
+        pyautogui.press("\n")
+        time.sleep(2)
+        pyperclip.copy(capchaValue)
+        pyautogui.hotkey('ctrl', 'v')
+        pyautogui.press("\n")
+        try:
+            display = driver.find_element(By.CSS_SELECTOR, "div.alertNotice").text
+        except:
+            display = ""
+        discorrectWord = "새로운 문자로 다시 인증해주세요"
+        if display == discorrectWord:
+           pyautogui.click()
+        else:
+            select()
+            break
+except:
+    select()
+
+print("YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY")
     
     
